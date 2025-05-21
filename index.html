@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profilecode</title>
+    <script>
+        // ページ読み込み時に実行
+        window.onload = function() {
+            // URLのパスとクエリパラメータを取得
+            const currentUrl = new URL(window.location.href);
+            const path = currentUrl.pathname;
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get("token");
+            const type = urlParams.get("type");
+            const accessToken = urlParams.get("access_token");
+
+            // ストアのリンクを定義
+            const playStoreLink = "https://play.google.com/store/apps/details?id=com.profilecode.profilecode";
+
+            // デバイスの種類を判定
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+            if (/android/i.test(userAgent)) {
+                if (path === "/join" && token) {
+                    // Sharelinkの場合
+                    window.location.href = `intent://join?token=${token}#Intent;scheme=https;package=com.profilecode.profilecode;S.browser_fallback_url=${encodeURIComponent(playStoreLink)};end`;
+                } else if (type === 'recovery' && accessToken) {
+                    // パスワード変更の場合
+                    window.location.href = `intent://reset-password/?access_token=${accessToken}&type=${type}#Intent;scheme=https;package=com.profilecode.profilecode;S.browser_fallback_url=${encodeURIComponent(playStoreLink)};end`;
+                } else {
+                    // その他の場合、直接Play Storeに遷移
+                    window.location.href = playStoreLink;
+                }
+            } else {
+                // その他のデバイス（PC、iOSなど）の場合、直接Play Storeに遷移
+                window.location.href = playStoreLink;
+            }
+        };
+    </script>
+</head>
+<body>
+    <p>Redirecting to Play Store...</p>
+</body>
+</html>

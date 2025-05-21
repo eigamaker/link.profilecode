@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Authentication Callback</title>
+  <script>
+    // URLフラグメントからパラメータを取得
+    const hash = window.location.hash.substring(1); // "#access_token=..." を除去
+    const hashParams = new URLSearchParams(hash);
+
+    const type = hashParams.get('type');
+    const accessToken = hashParams.get('access_token');
+
+    if (type === 'recovery' && accessToken) {
+      // フラグメント情報をクエリに変換してintentスキームで渡す
+      const intentUrl = `intent://reset-password/?access_token=${accessToken}&type=${type}#Intent;scheme=com.profilecode.profilecode;package=com.profilecode.profilecode;S.browser_fallback_url=https://play.google.com/store/apps/details?id=com.profilecode.profilecode;end`;
+
+      window.location.href = intentUrl;
+
+      setTimeout(() => {
+        window.location.href = 'https://play.google.com/store/apps/details?id=com.profilecode.profilecode';
+      }, 2000);
+    } else {
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.get('error_code')) {
+        document.body.innerHTML = `<h1>Error</h1><p>${searchParams.get('error_description')}</p>`;
+      } else {
+        document.body.innerHTML = `<h1>Error</h1><p>Invalid or missing tokens.</p>`;
+      }
+    }
+  </script>
+</head>
+<body>
+  <h1>Redirecting to app...</h1>
+  <p>If not redirected, <a id="manualLink" href="#">click here</a></p>
+  <script>
+    // 手動リンクも正しく設定
+    const manual = document.getElementById('manualLink');
+    manual.href = `intent://reset-password/?access_token=${accessToken}&type=${type}#Intent;scheme=com.profilecode.profilecode;package=com.profilecode.profilecode;S.browser_fallback_url=https://play.google.com/store/apps/details?id=com.profilecode.profilecode;end`;
+  </script>
+</body>
+</html>

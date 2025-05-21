@@ -1,0 +1,13 @@
+[
+    {
+        "relation": ["delegate_permission/common.handle_all_urls"],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.profilecode.profilecode",
+            "sha256_cert_fingerprints": [
+                "84:B3:02:3D:37:4E:47:0C:9E:12:60:95:08:DD:F5:AD:3E:C0:A8:D4:DF:FA:FC:E6:50:A3:8E:9D:53:F6:9F:B8",
+                "13:D9:4C:56:D9:9E:75:E3:FD:B6:67:1E:06:97:7C:81:11:EC:86:93:90:A1:16:A8:4F:EA:C9:61:15:18:08:0E"
+            ]
+        }
+    }
+]

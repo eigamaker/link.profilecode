@@ -1,0 +1,9 @@
+include:
+  - .well-known
+permalink: pretty
+markdown: kramdown
+plugins:
+  - jekyll-redirect-from
+redirect_from:
+  - /join
+  - /join/ 
