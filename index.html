@@ -27,7 +27,7 @@
                     window.location.href = `intent://join?token=${token}#Intent;scheme=https;package=com.profilecode.profilecode;S.browser_fallback_url=${encodeURIComponent(playStoreLink)};end`;
                 } else if (type === 'recovery' && accessToken) {
                     // パスワード変更の場合
-                    window.location.href = `intent://reset-password/?access_token=${accessToken}&type=${type}#Intent;scheme=https;package=com.profilecode.profilecode;S.browser_fallback_url=${encodeURIComponent(playStoreLink)};end`;
+                    window.location.href = `intent://reset-password/?access_token=${accessToken}&type=${type}#Intent;scheme=com.profilecode.profilecode;package=com.profilecode.profilecode;S.browser_fallback_url=${encodeURIComponent(playStoreLink)};end`;
                 } else {
                     // その他の場合、直接Play Storeに遷移
                     window.location.href = playStoreLink;
