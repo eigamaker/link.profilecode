@@ -4,8 +4,7 @@
         "details": [
             {
                 "appID": "J4SJR8W4AS.com.profilecode.profilecode",
-                "paths": ["*"],
-                "domains": ["link.profilecode.codes"]
+                "paths": ["*"]
             }
         ]
     }
