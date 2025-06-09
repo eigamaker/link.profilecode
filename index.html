@@ -17,9 +17,11 @@
 
             // ストアのリンクを定義
             const playStoreLink = "https://play.google.com/store/apps/details?id=com.profilecode.profilecode";
+            const appStoreLink = "https://apps.apple.com/app/profilecode/id6476780532";
 
             // デバイスの種類を判定
             const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
 
             if (/android/i.test(userAgent)) {
                 if (path === "/join" && token) {
@@ -32,14 +34,29 @@
                     // その他の場合、直接Play Storeに遷移
                     window.location.href = playStoreLink;
                 }
+            } else if (isIOS) {
+                if (path === "/join" && token) {
+                    // Sharelinkの場合
+                    window.location.href = `profilecode://join?token=${token}`;
+                } else if (type === 'recovery' && accessToken) {
+                    // パスワード変更の場合
+                    window.location.href = `profilecode://reset-password/?access_token=${accessToken}&type=${type}`;
+                } else {
+                    // その他の場合、直接App Storeに遷移
+                    window.location.href = appStoreLink;
+                }
             } else {
-                // その他のデバイス（PC、iOSなど）の場合、直接Play Storeに遷移
-                window.location.href = playStoreLink;
+                // PCの場合、適切なストアに遷移
+                if (isIOS) {
+                    window.location.href = appStoreLink;
+                } else {
+                    window.location.href = playStoreLink;
+                }
             }
         };
     </script>
 </head>
 <body>
-    <p>Redirecting to Play Store...</p>
+    <p>Redirecting...</p>
 </body>
 </html>
