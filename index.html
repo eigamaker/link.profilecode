@@ -11,22 +11,15 @@
             const currentUrl = new URL(window.location.href);
             const path = currentUrl.pathname;
 
+            // apple-app-site-associationファイルへのアクセスは特別処理をスキップ
+            if (path === '/apple-app-site-association' || path === '/.well-known/apple-app-site-association') {
+                return;
+            }
+
             // デバイスの種類を判定（より厳密な判定）
             const userAgent = navigator.userAgent || navigator.vendor || window.opera;
             const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
             const isAndroid = /android/i.test(userAgent);
-
-            // apple-app-site-associationファイルへのアクセスは特別処理
-            if (path === '/apple-app-site-association' || path === '/.well-known/apple-app-site-association') {
-                if (isIOS) {
-                    // iOSデバイスの場合、App Storeに遷移
-                    window.location.href = "https://apps.apple.com/app/profilecode/id6476780532";
-                } else if (isAndroid) {
-                    // Androidデバイスの場合、Play Storeに遷移
-                    window.location.href = "https://play.google.com/store/apps/details?id=com.profilecode.profilecode";
-                }
-                return;
-            }
 
             const urlParams = new URLSearchParams(window.location.search);
             const token = urlParams.get("token");
