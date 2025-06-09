@@ -6,8 +6,4 @@ plugins:
   - jekyll-redirect-from
 redirect_from:
   - /join
-  - /join/
-
-# MIMEタイプの設定
-mime_types:
-  .well-known/apple-app-site-association: application/json 
+  - /join/ 
