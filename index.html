@@ -10,6 +10,21 @@
             // URLのパスとクエリパラメータを取得
             const currentUrl = new URL(window.location.href);
             const path = currentUrl.pathname;
+
+            // apple-app-site-associationファイルへのアクセスは特別処理をスキップ
+            if (path === '/apple-app-site-association' || path === '/.well-known/apple-app-site-association') {
+                // デバイスの種類を判定
+                const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+                const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+
+                if (isIOS) {
+                    window.location.href = "https://apps.apple.com/app/profilecode/id6476780532";
+                } else {
+                    window.location.href = "https://play.google.com/store/apps/details?id=com.profilecode.profilecode";
+                }
+                return;
+            }
+
             const urlParams = new URLSearchParams(window.location.search);
             const token = urlParams.get("token");
             const type = urlParams.get("type");
@@ -35,12 +50,41 @@
                     window.location.href = playStoreLink;
                 }
             } else if (isIOS) {
+                // iOSの場合、Universal LinksとカスタムURLスキームの両方を試す
                 if (path === "/join" && token) {
                     // Sharelinkの場合
-                    window.location.href = `profilecode://join?token=${token}`;
+                    const universalLink = `https://link.profilecode.codes/join?token=${token}`;
+                    const customScheme = `profilecode://join?token=${token}`;
+                    
+                    // まずUniversal Linksを試す
+                    window.location.href = universalLink;
+                    
+                    // 3秒後にアプリが起動していなければカスタムURLスキームを試す
+                    setTimeout(function() {
+                        window.location.href = customScheme;
+                        
+                        // さらに3秒後にアプリが起動していなければApp Storeに遷移
+                        setTimeout(function() {
+                            window.location.href = appStoreLink;
+                        }, 3000);
+                    }, 3000);
                 } else if (type === 'recovery' && accessToken) {
                     // パスワード変更の場合
-                    window.location.href = `profilecode://reset-password/?access_token=${accessToken}&type=${type}`;
+                    const universalLink = `https://link.profilecode.codes/reset-password?access_token=${accessToken}&type=${type}`;
+                    const customScheme = `profilecode://reset-password/?access_token=${accessToken}&type=${type}`;
+                    
+                    // まずUniversal Linksを試す
+                    window.location.href = universalLink;
+                    
+                    // 3秒後にアプリが起動していなければカスタムURLスキームを試す
+                    setTimeout(function() {
+                        window.location.href = customScheme;
+                        
+                        // さらに3秒後にアプリが起動していなければApp Storeに遷移
+                        setTimeout(function() {
+                            window.location.href = appStoreLink;
+                        }, 3000);
+                    }, 3000);
                 } else {
                     // その他の場合、直接App Storeに遷移
                     window.location.href = appStoreLink;
