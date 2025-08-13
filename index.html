@@ -24,8 +24,6 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             const token = urlParams.get("token");
-            const type = urlParams.get("type");
-            const accessToken = urlParams.get("access_token");
 
             // ストアのリンクを定義
             const playStoreLink = "https://play.google.com/store/apps/details?id=com.profilecode.profilecode";
@@ -35,9 +33,6 @@
                 if (path === "/join" && token) {
                     // Sharelinkの場合
                     window.location.href = `intent://join?token=${token}#Intent;scheme=https;package=com.profilecode.profilecode;S.browser_fallback_url=${encodeURIComponent(playStoreLink)};end`;
-                } else if (type === 'recovery' && accessToken) {
-                    // パスワード変更の場合
-                    window.location.href = `intent://reset-password/?access_token=${accessToken}&type=${type}#Intent;scheme=com.profilecode.profilecode;package=com.profilecode.profilecode;S.browser_fallback_url=${encodeURIComponent(playStoreLink)};end`;
                 } else {
                     // その他の場合、直接Play Storeに遷移
                     window.location.href = playStoreLink;
@@ -61,23 +56,7 @@
                             window.location.href = appStoreLink;
                         }, 3000);
                     }, 3000);
-                } else if (type === 'recovery' && accessToken) {
-                    // パスワード変更の場合
-                    const universalLink = `https://link.profilecode.codes/reset-password?access_token=${accessToken}&type=${type}`;
-                    const customScheme = `profilecode://reset-password/?access_token=${accessToken}&type=${type}`;
-                    
-                    // まずUniversal Linksを試す
-                    window.location.href = universalLink;
-                    
-                    // 3秒後にアプリが起動していなければカスタムURLスキームを試す
-                    setTimeout(function() {
-                        window.location.href = customScheme;
-                        
-                        // さらに3秒後にアプリが起動していなければApp Storeに遷移
-                        setTimeout(function() {
-                            window.location.href = appStoreLink;
-                        }, 3000);
-                    }, 3000);
+
                 } else {
                     // その他の場合、直接App Storeに遷移
                     window.location.href = appStoreLink;
