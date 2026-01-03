@@ -34,94 +34,53 @@
                     // Android Intentスキーム
                     window.location.href = `intent://join?token=${token}#Intent;scheme=https;package=com.profilecode.profilecode;S.browser_fallback_url=${encodeURIComponent(playStoreLink)};end`;
                 } else if (isIOS) {
-                    // iOS Universal Links → カスタムスキーム → App Store
+                    // iOS Universal Links処理
+                    // Universal Linksは自動的にアプリを起動する（アプリがインストールされている場合）
                     const universalLink = `https://link.profilecode.codes/join?token=${token}`;
-                    // カスタムスキームは com.profilecode.profilecode:// を使用
-                    const customScheme = `com.profilecode.profilecode://join?token=${token}`;
-                    
                     let appLaunched = false;
-                    let customSchemeTimeout;
-                    let appStoreTimeout;
+                    let fallbackTimeout;
                     
-                    // sessionStorageでアプリ起動を記録（ページが再表示された場合に備える）
-                    const appLaunchKey = 'app_launched_' + token;
-                    if (sessionStorage.getItem(appLaunchKey)) {
-                        appLaunched = true;
-                    }
-                    
-                    // アプリが起動したことを検知する関数
+                    // アプリが起動したことを検知（ページが非表示になったら）
                     function detectAppLaunch() {
                         if (appLaunched) {
-                            return; // 既に検知済み
+                            return;
                         }
                         appLaunched = true;
-                        // sessionStorageに記録
-                        try {
-                            sessionStorage.setItem(appLaunchKey, 'true');
-                        } catch (e) {
-                            // sessionStorageが使用できない場合（プライベートモードなど）は無視
-                        }
                         // タイマーをクリア
-                        if (customSchemeTimeout) {
-                            clearTimeout(customSchemeTimeout);
-                            customSchemeTimeout = null;
-                        }
-                        if (appStoreTimeout) {
-                            clearTimeout(appStoreTimeout);
-                            appStoreTimeout = null;
+                        if (fallbackTimeout) {
+                            clearTimeout(fallbackTimeout);
+                            fallbackTimeout = null;
                         }
                     }
                     
-                    // イベントリスナーを即座に設定（window.onloadを待たない）
                     // ページが非表示になったらアプリが起動したと判断
                     document.addEventListener('visibilitychange', function() {
                         if (document.hidden) {
                             detectAppLaunch();
-                        } else {
-                            // ページが再表示された場合、アプリが既に起動している可能性がある
-                            // タイマーをクリアして、App Storeへの遷移を防ぐ
-                            if (appLaunched || sessionStorage.getItem(appLaunchKey)) {
-                                detectAppLaunch();
-                            }
                         }
-                    }, { once: false });
+                    });
                     
                     // ページがアンロードされる前にアプリが起動したと判断
                     window.addEventListener('pagehide', function() {
                         detectAppLaunch();
-                    }, { once: false });
+                    });
                     
                     // ウィンドウがフォーカスを失ったらアプリが起動したと判断
                     window.addEventListener('blur', function() {
                         detectAppLaunch();
-                    }, { once: false });
+                    });
                     
-                    // ページがフォーカスを失ったらアプリが起動したと判断（追加の検知）
-                    window.addEventListener('focusout', function() {
-                        detectAppLaunch();
-                    }, { once: false });
-                    
-                    // 既にアプリが起動している場合は何もしない
-                    if (appLaunched) {
-                        return;
-                    }
-                    
-                    // まずUniversal Linksを試す
+                    // Universal Linksを試す（アプリがインストールされていれば自動的に起動）
                     window.location.href = universalLink;
                     
-                    // 3秒後にアプリが起動していなければカスタムURLスキームを試す
-                    customSchemeTimeout = setTimeout(function() {
-                        if (!appLaunched && !sessionStorage.getItem(appLaunchKey)) {
-                            window.location.href = customScheme;
-                            
-                            // さらに3秒後にアプリが起動していなければApp Storeに遷移
-                            appStoreTimeout = setTimeout(function() {
-                                if (!appLaunched && !sessionStorage.getItem(appLaunchKey)) {
-                                    window.location.href = appStoreLink;
-                                }
-                            }, 3000);
+                    // 短い時間（500ms）後にページが表示されたままなら、アプリ未インストールと判断
+                    // App Storeに遷移（アプリが起動した場合はタイマーがクリアされる）
+                    fallbackTimeout = setTimeout(function() {
+                        if (!appLaunched) {
+                            // アプリ未インストールの場合、App Storeに遷移
+                            window.location.href = appStoreLink;
                         }
-                    }, 3000);
+                    }, 500);
                 } else {
                     // その他のデバイス
                     window.location.href = playStoreLink;
