@@ -351,17 +351,54 @@ adb shell am start -a android.intent.action.VIEW \
                     // カスタムスキームは com.profilecode.profilecode:// を使用
                     const customScheme = `com.profilecode.profilecode://join?token=${token}`;
                     
+                    let appLaunched = false;
+                    let customSchemeTimeout;
+                    let appStoreTimeout;
+                    
+                    // アプリが起動したことを検知する関数
+                    function detectAppLaunch() {
+                        appLaunched = true;
+                        // タイマーをクリア
+                        if (customSchemeTimeout) {
+                            clearTimeout(customSchemeTimeout);
+                        }
+                        if (appStoreTimeout) {
+                            clearTimeout(appStoreTimeout);
+                        }
+                    }
+                    
+                    // ページが非表示になったらアプリが起動したと判断
+                    document.addEventListener('visibilitychange', function() {
+                        if (document.hidden) {
+                            detectAppLaunch();
+                        }
+                    });
+                    
+                    // ページがアンロードされる前にアプリが起動したと判断
+                    window.addEventListener('pagehide', function() {
+                        detectAppLaunch();
+                    });
+                    
+                    // ウィンドウがフォーカスを失ったらアプリが起動したと判断
+                    window.addEventListener('blur', function() {
+                        detectAppLaunch();
+                    });
+                    
                     // まずUniversal Linksを試す
                     window.location.href = universalLink;
                     
                     // 3秒後にアプリが起動していなければカスタムURLスキームを試す
-                    setTimeout(function() {
-                        window.location.href = customScheme;
-                        
-                        // さらに3秒後にアプリが起動していなければApp Storeに遷移
-                        setTimeout(function() {
-                            window.location.href = appStoreLink;
-                        }, 3000);
+                    customSchemeTimeout = setTimeout(function() {
+                        if (!appLaunched) {
+                            window.location.href = customScheme;
+                            
+                            // さらに3秒後にアプリが起動していなければApp Storeに遷移
+                            appStoreTimeout = setTimeout(function() {
+                                if (!appLaunched) {
+                                    window.location.href = appStoreLink;
+                                }
+                            }, 3000);
+                        }
                     }, 3000);
                 } else {
                     // その他のデバイス
@@ -582,6 +619,39 @@ if (path === "/join" && token) {
 - 実装計画: `docs/link_profilecode_implementation_plan.md`
 - 詳細な確認チェックリスト: `docs/link_profilecode_verification_checklist.md`
 - 質問リスト: `docs/link_profilecode_verification_questions.md`
+
+---
+
+---
+
+## 📱 iOS アプリ起動後のストア遷移問題（追加修正）
+
+### 問題の症状
+
+iOSでアプリがインストールされている場合、アプリが起動するがすぐにストアに遷移してしまう問題が報告されています。
+
+**症状**:
+- ✅ Android: 正常動作（アプリ起動 or ストア遷移）
+- ✅ iOS（アプリ未インストール）: 正常動作（ストア遷移）
+- ❌ iOS（アプリインストール済み）: アプリが起動するが、すぐにストアに遷移してしまう
+
+### 原因
+
+**アプリ側は問題ありません**。問題は `link.profilecode.codes` 側の実装にあります。
+
+現在の実装では、Universal Linksでアプリが起動しても、JavaScriptのタイマーが動作し続けるため、3秒後にカスタムスキームを試行し、さらに3秒後にApp Storeに遷移してしまいます。
+
+### 解決策
+
+アプリが起動したことを検知し、タイマーをクリアする必要があります。上記の `index.html` の修正コードには、以下のアプリ起動検知機能が含まれています：
+
+1. **`visibilitychange`イベント**: ページが非表示になったらアプリが起動したと判断
+2. **`pagehide`イベント**: ページがアンロードされる前にアプリが起動したと判断
+3. **`blur`イベント**: ウィンドウがフォーカスを失ったらアプリが起動したと判断
+
+これらのイベントでアプリ起動を検知し、タイマーをクリアすることで、ストアへの遷移を防ぎます。
+
+詳細は `docs/link_profilecode_ios_fix.md` を参照してください。
 
 ---
 

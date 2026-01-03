@@ -40,17 +40,54 @@
                     // カスタムスキームは com.profilecode.profilecode:// を使用
                     const customScheme = `com.profilecode.profilecode://join?token=${token}`;
                     
+                    let appLaunched = false;
+                    let customSchemeTimeout;
+                    let appStoreTimeout;
+                    
+                    // アプリが起動したことを検知する関数
+                    function detectAppLaunch() {
+                        appLaunched = true;
+                        // タイマーをクリア
+                        if (customSchemeTimeout) {
+                            clearTimeout(customSchemeTimeout);
+                        }
+                        if (appStoreTimeout) {
+                            clearTimeout(appStoreTimeout);
+                        }
+                    }
+                    
+                    // ページが非表示になったらアプリが起動したと判断
+                    document.addEventListener('visibilitychange', function() {
+                        if (document.hidden) {
+                            detectAppLaunch();
+                        }
+                    });
+                    
+                    // ページがアンロードされる前にアプリが起動したと判断
+                    window.addEventListener('pagehide', function() {
+                        detectAppLaunch();
+                    });
+                    
+                    // ウィンドウがフォーカスを失ったらアプリが起動したと判断
+                    window.addEventListener('blur', function() {
+                        detectAppLaunch();
+                    });
+                    
                     // まずUniversal Linksを試す
                     window.location.href = universalLink;
                     
                     // 3秒後にアプリが起動していなければカスタムURLスキームを試す
-                    setTimeout(function() {
-                        window.location.href = customScheme;
-                        
-                        // さらに3秒後にアプリが起動していなければApp Storeに遷移
-                        setTimeout(function() {
-                            window.location.href = appStoreLink;
-                        }, 3000);
+                    customSchemeTimeout = setTimeout(function() {
+                        if (!appLaunched) {
+                            window.location.href = customScheme;
+                            
+                            // さらに3秒後にアプリが起動していなければApp Storeに遷移
+                            appStoreTimeout = setTimeout(function() {
+                                if (!appLaunched) {
+                                    window.location.href = appStoreLink;
+                                }
+                            }, 3000);
+                        }
                     }, 3000);
                 } else {
                     // その他のデバイス
