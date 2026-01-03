@@ -6,8 +6,7 @@
     <title>Opening Profilecode...</title>
     <meta name="apple-itunes-app" content="app-id=6747016000">
     <script>
-        // ページ読み込み時に実行
-        window.onload = function() {
+        (function() {
             // URLのパスとクエリパラメータを取得
             const currentUrl = new URL(window.location.href);
             const path = currentUrl.pathname;
@@ -44,46 +43,80 @@
                     let customSchemeTimeout;
                     let appStoreTimeout;
                     
+                    // sessionStorageでアプリ起動を記録（ページが再表示された場合に備える）
+                    const appLaunchKey = 'app_launched_' + token;
+                    if (sessionStorage.getItem(appLaunchKey)) {
+                        appLaunched = true;
+                    }
+                    
                     // アプリが起動したことを検知する関数
                     function detectAppLaunch() {
+                        if (appLaunched) {
+                            return; // 既に検知済み
+                        }
                         appLaunched = true;
+                        // sessionStorageに記録
+                        try {
+                            sessionStorage.setItem(appLaunchKey, 'true');
+                        } catch (e) {
+                            // sessionStorageが使用できない場合（プライベートモードなど）は無視
+                        }
                         // タイマーをクリア
                         if (customSchemeTimeout) {
                             clearTimeout(customSchemeTimeout);
+                            customSchemeTimeout = null;
                         }
                         if (appStoreTimeout) {
                             clearTimeout(appStoreTimeout);
+                            appStoreTimeout = null;
                         }
                     }
                     
+                    // イベントリスナーを即座に設定（window.onloadを待たない）
                     // ページが非表示になったらアプリが起動したと判断
                     document.addEventListener('visibilitychange', function() {
                         if (document.hidden) {
                             detectAppLaunch();
+                        } else {
+                            // ページが再表示された場合、アプリが既に起動している可能性がある
+                            // タイマーをクリアして、App Storeへの遷移を防ぐ
+                            if (appLaunched || sessionStorage.getItem(appLaunchKey)) {
+                                detectAppLaunch();
+                            }
                         }
-                    });
+                    }, { once: false });
                     
                     // ページがアンロードされる前にアプリが起動したと判断
                     window.addEventListener('pagehide', function() {
                         detectAppLaunch();
-                    });
+                    }, { once: false });
                     
                     // ウィンドウがフォーカスを失ったらアプリが起動したと判断
                     window.addEventListener('blur', function() {
                         detectAppLaunch();
-                    });
+                    }, { once: false });
+                    
+                    // ページがフォーカスを失ったらアプリが起動したと判断（追加の検知）
+                    window.addEventListener('focusout', function() {
+                        detectAppLaunch();
+                    }, { once: false });
+                    
+                    // 既にアプリが起動している場合は何もしない
+                    if (appLaunched) {
+                        return;
+                    }
                     
                     // まずUniversal Linksを試す
                     window.location.href = universalLink;
                     
                     // 3秒後にアプリが起動していなければカスタムURLスキームを試す
                     customSchemeTimeout = setTimeout(function() {
-                        if (!appLaunched) {
+                        if (!appLaunched && !sessionStorage.getItem(appLaunchKey)) {
                             window.location.href = customScheme;
                             
                             // さらに3秒後にアプリが起動していなければApp Storeに遷移
                             appStoreTimeout = setTimeout(function() {
-                                if (!appLaunched) {
+                                if (!appLaunched && !sessionStorage.getItem(appLaunchKey)) {
                                     window.location.href = appStoreLink;
                                 }
                             }, 3000);
@@ -104,7 +137,7 @@
                     window.location.href = playStoreLink;
                 }
             }
-        };
+        })();
     </script>
 </head>
 <body>
