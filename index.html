@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profilecode</title>
+    <title>Opening Profilecode...</title>
     <meta name="apple-itunes-app" content="app-id=6747016000">
     <script>
         // ページ読み込み時に実行
@@ -29,20 +29,16 @@
             const playStoreLink = "https://play.google.com/store/apps/details?id=com.profilecode.profilecode";
             const appStoreLink = "https://apps.apple.com/app/id6747016000";
 
-            if (isAndroid) {
-                if (path === "/join" && token) {
-                    // Sharelinkの場合
+            // /joinで始まるパスを処理（path.startsWith("/join")を使用）
+            if (path.startsWith("/join") && token) {
+                if (isAndroid) {
+                    // Android Intentスキーム
                     window.location.href = `intent://join?token=${token}#Intent;scheme=https;package=com.profilecode.profilecode;S.browser_fallback_url=${encodeURIComponent(playStoreLink)};end`;
-                } else {
-                    // その他の場合、直接Play Storeに遷移
-                    window.location.href = playStoreLink;
-                }
-            } else if (isIOS) {
-                // iOSの場合、Universal LinksとカスタムURLスキームの両方を試す
-                if (path === "/join" && token) {
-                    // Sharelinkの場合
+                } else if (isIOS) {
+                    // iOS Universal Links → カスタムスキーム → App Store
                     const universalLink = `https://link.profilecode.codes/join?token=${token}`;
-                    const customScheme = `profilecode://join?token=${token}`;
+                    // カスタムスキームは com.profilecode.profilecode:// を使用
+                    const customScheme = `com.profilecode.profilecode://join?token=${token}`;
                     
                     // まずUniversal Linksを試す
                     window.location.href = universalLink;
@@ -56,16 +52,18 @@
                             window.location.href = appStoreLink;
                         }, 3000);
                     }, 3000);
-
                 } else {
-                    // その他の場合、直接App Storeに遷移
-                    window.location.href = appStoreLink;
+                    // その他のデバイス
+                    window.location.href = playStoreLink;
                 }
             } else {
-                // PCの場合、適切なストアに遷移
-                if (isIOS) {
+                // /joinで始まらないパスまたはtokenがない場合
+                if (isAndroid) {
+                    window.location.href = playStoreLink;
+                } else if (isIOS) {
                     window.location.href = appStoreLink;
                 } else {
+                    // PCの場合、適切なストアに遷移
                     window.location.href = playStoreLink;
                 }
             }
@@ -73,6 +71,6 @@
     </script>
 </head>
 <body>
-    <p>Redirecting...</p>
+    <p>アプリを開いています...</p>
 </body>
 </html>

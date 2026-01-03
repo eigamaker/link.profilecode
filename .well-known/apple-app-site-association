@@ -4,7 +4,12 @@
         "details": [
             {
                 "appID": "J4SJR8W4AS.com.profilecode.profilecode",
-                "paths": ["*"]
+                "paths": [
+                    "/join*",
+                    "/auth/callback*",
+                    "/reset-password*",
+                    "/login-callback*"
+                ]
             }
         ]
     }
